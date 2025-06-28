@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import requests
 from bs4 import BeautifulSoup
@@ -48,6 +49,20 @@ app.add_middleware(
     allow_methods=["*"],  # 允许所有HTTP方法
     allow_headers=["*"],  # 允许所有请求头
 )
+
+@app.get("/")
+async def root():
+    """
+    重定向到API文档页面
+    """
+    return RedirectResponse(url="/docs")
+
+@app.get("/health")
+async def health_check():
+    """
+    健康检查端点
+    """
+    return {"status": "healthy", "api_version": "1.0.0"}
 
 class UrlRequest(BaseModel):
     url: str
