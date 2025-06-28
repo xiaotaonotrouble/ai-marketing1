@@ -1,0 +1,11 @@
+/* 思考动画 */
+.dots {
+  display: inline-block;
+  animation: dotAnimation 1.4s infinite;
+}
+ 
+@keyframes dotAnimation {
+  0% { opacity: .2; }
+  20% { opacity: 1; }
+  100% { opacity: .2; }
+} 

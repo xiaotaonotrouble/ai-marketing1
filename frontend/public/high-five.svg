@@ -1,0 +1,41 @@
+<svg width="240" height="180" viewBox="0 0 240 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 装饰性星星和光芒 -->
+  <circle cx="50" cy="40" r="4" fill="#FCD34D"/>
+  <circle cx="190" cy="40" r="4" fill="#FCD34D"/>
+  <circle cx="30" cy="100" r="3" fill="#FCD34D"/>
+  <circle cx="210" cy="100" r="3" fill="#FCD34D"/>
+  <circle cx="60" cy="150" r="4" fill="#FCD34D"/>
+  <circle cx="180" cy="150" r="4" fill="#FCD34D"/>
+  
+  <!-- 左手 -->
+  <g transform="translate(-10, 0)">
+    <!-- 手腕部分 -->
+    <path d="M95 100C95 85 100 75 110 75C120 75 125 85 125 95V120C125 130 120 135 110 135C100 135 95 125 95 100Z" fill="#8B5CF6"/>
+    <!-- 手掌部分 -->
+    <path d="M105 90C105 80 110 70 120 70C130 70 135 80 135 90V115C135 125 130 135 120 135C110 135 105 125 105 90Z" fill="#9333EA"/>
+    <!-- 手指 -->
+    <path d="M115 85C115 75 120 65 130 65C140 65 145 75 145 85V110C145 120 140 130 130 130C120 130 115 120 115 85Z" fill="#8B5CF6"/>
+  </g>
+
+  <!-- 右手 -->
+  <g transform="translate(10, 0)">
+    <!-- 手腕部分 -->
+    <path d="M145 100C145 85 140 75 130 75C120 75 115 85 115 95V120C115 130 120 135 130 135C140 135 145 125 145 100Z" fill="#EC4899"/>
+    <!-- 手掌部分 -->
+    <path d="M135 90C135 80 130 70 120 70C110 70 105 80 105 90V115C105 125 110 135 120 135C130 135 135 125 135 90Z" fill="#DB2777"/>
+    <!-- 手指 -->
+    <path d="M125 85C125 75 120 65 110 65C100 65 95 75 95 85V110C95 120 100 130 110 130C120 130 125 120 125 85Z" fill="#EC4899"/>
+  </g>
+
+  <!-- 装饰性光芒 -->
+  <g transform="translate(120, 90)">
+    <path d="M-15 -30L0 -45L15 -30" stroke="#FCD34D" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-40 -15L-55 0L-40 15" stroke="#FCD34D" stroke-width="3" stroke-linecap="round"/>
+    <path d="M40 -15L55 0L40 15" stroke="#FCD34D" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-15 30L0 45L15 30" stroke="#FCD34D" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- 中心装饰 -->
+  <circle cx="120" cy="90" r="8" fill="#FBBF24"/>
+  <circle cx="120" cy="90" r="5" fill="#FCD34D"/>
+</svg> 

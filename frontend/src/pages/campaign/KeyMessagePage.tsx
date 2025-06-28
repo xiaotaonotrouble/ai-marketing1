@@ -1,0 +1,80 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { StepSidebar } from '../../components/StepSidebar';
+import { CampaignCreateHeader } from '../../components/CampaignCreateHeader';
+import { KeyMessage } from '../../components/KeyMessage';
+import { useCampaign } from '../../context/CampaignContext';
+import { useCampaignCreate } from '../../context/CampaignCreateContext';
+
+// 定义创建活动的步骤
+const campaignSteps = [
+  { number: 1, label: 'Target Analysis' },
+  { number: 2, label: 'Key Message' },
+  { number: 3, label: 'Campaign Settings' }
+];
+
+const KeyMessagePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [isComplete, setIsComplete] = useState(false);
+  const { updateCampaign } = useCampaign();
+  const { state, setCurrentStep } = useCampaignCreate();
+
+  // 设置当前步骤 - 只在组件挂载时运行一次
+  useEffect(() => {
+    if (state.currentStep !== 'key-message') {
+      setCurrentStep('key-message');
+    }
+  }, []); // 空依赖数组，确保只运行一次
+
+  const handleNext = () => {
+    // 准备要更新的数据
+    const updateData = {
+      businessLogo: state.businessLogo,
+      businessName: state.businessName,
+      productType: state.productType,
+      deliveryType: state.deliveryType,
+      productName: state.productName,
+      productPhotos: state.productPhotos,
+      videoAssetLink: state.videoAssetLink,
+      businessIntroduction: state.businessIntroduction,
+      coreSellingPoints: state.coreSellingPoints.filter(point => point.trim() !== ''), // 过滤掉空的卖点
+      coreAudiences: state.coreAudiences.filter(audience => audience.title.trim() !== '' || audience.description.trim() !== ''), // 过滤掉空的受众
+      audienceGenders: state.audienceGenders,
+      audienceAges: state.audienceAges,
+      audienceInterests: state.audienceInterests
+    };
+
+    // 更新数据
+    updateCampaign(updateData);
+
+    // 确保数据更新完成后再导航
+    setTimeout(() => {
+      navigate('/campaign/create/setting');
+    }, 0);
+  };
+
+  const handleContentChange = useCallback((complete: boolean) => {
+    setIsComplete(complete);
+  }, []); // 空依赖数组，因为setIsComplete是稳定的
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* 顶部固定导航 */}
+      <CampaignCreateHeader 
+        title="New Campaign" 
+        onNext={handleNext}
+        canNext={isComplete}
+      />
+      
+      {/* 左侧步骤导航 */}
+      <StepSidebar steps={campaignSteps} currentStep={2} />
+      
+      {/* 页面内容 */}
+      <div className="pt-20 px-4 pl-16">
+        <KeyMessage onContentChange={handleContentChange} />
+      </div>
+    </div>
+  );
+};
+
+export default KeyMessagePage; 
