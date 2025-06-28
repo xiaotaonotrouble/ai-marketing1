@@ -39,13 +39,17 @@ export interface MarketingStrategy {
 
 /**
  * 获取API基础URL
- * 根据当前环境自动选择协议和主机
+ * 优先使用环境变量中的API URL，如果没有则使用本地开发环境URL
  */
 function getBaseUrl(): string {
-  const protocol = window.location.protocol;
-  const host = window.location.hostname;
-  const port = '8000'; // FastAPI服务器端口
-  return `${protocol}//${host}:${port}`;
+  // 优先使用环境变量中的API URL
+  const apiUrl = import.meta.env.VITE_API_URL;
+  if (apiUrl) {
+    return apiUrl.replace(/\/$/, ''); // 移除末尾的斜杠（如果有）
+  }
+
+  // 本地开发环境
+  return 'http://localhost:8000';
 }
 
 /**
