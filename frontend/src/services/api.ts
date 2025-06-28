@@ -39,17 +39,14 @@ export interface MarketingStrategy {
 
 /**
  * 获取API基础URL
- * 优先使用环境变量中的API URL，如果没有则使用本地开发环境URL
+ * 使用环境变量中的API URL
  */
 function getBaseUrl(): string {
-  // 优先使用环境变量中的API URL
   const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) {
-    return apiUrl.replace(/\/$/, ''); // 移除末尾的斜杠（如果有）
+  if (!apiUrl) {
+    throw new Error('API URL not configured. Please set VITE_API_URL environment variable.');
   }
-
-  // 本地开发环境
-  return 'http://localhost:8000';
+  return apiUrl.replace(/\/$/, ''); // 移除末尾的斜杠（如果有）
 }
 
 /**
