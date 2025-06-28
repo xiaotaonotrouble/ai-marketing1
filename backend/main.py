@@ -26,13 +26,27 @@ if not DEEPSEEK_API_KEY:
 
 app = FastAPI()
 
+# 配置允许的域名
+allowed_origins = [
+    "http://localhost:5173",  # 本地开发环境
+    "https://ai-marketing1.vercel.app",  # Vercel 生产环境
+    "https://ai-marketing1-git-main-xiaotaonotrouble.vercel.app",  # Vercel main 分支预览
+    "https://ai-marketing1-xiaotaonotrouble.vercel.app",  # Vercel 部署预览
+    "https://ai-marketing1.vercel.app",  # Vercel 生产环境（无子域名）
+]
+
+# 如果环境变量中有额外的允许域名，添加到列表中
+additional_origins = os.getenv('ADDITIONAL_ALLOWED_ORIGINS')
+if additional_origins:
+    allowed_origins.extend(additional_origins.split(','))
+
 # 配置CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React开发服务器默认端口
+    allow_origins=allowed_origins,  # 允许的域名列表
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # 允许所有HTTP方法
+    allow_headers=["*"],  # 允许所有请求头
 )
 
 class UrlRequest(BaseModel):
