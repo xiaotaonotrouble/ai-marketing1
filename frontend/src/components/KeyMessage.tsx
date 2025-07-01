@@ -7,6 +7,7 @@ import { useCampaign } from '../context/CampaignContext';
 import { useCampaignCreate } from '../context/CampaignCreateContext';
 import '../styles/thinking.css';  // 导入动画样式
 import { AudienceAdvancedSettings } from './AudienceAdvancedSettings';
+import { supabase } from '../lib/supabase';
 
 interface KeyMessageProps {
   onContentChange: (complete: boolean) => void;
@@ -22,6 +23,7 @@ const productTypeOptions = [
 
 export function KeyMessage({ onContentChange }: KeyMessageProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const { campaign } = useCampaign();
   const { 
     state, 
@@ -118,17 +120,53 @@ export function KeyMessage({ onContentChange }: KeyMessageProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type === 'image/svg+xml') {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setBusinessLogo(result);
-      };
-      reader.readAsDataURL(file);
-    } else {
+    if (!file || file.type !== 'image/svg+xml') {
       alert('Please upload an SVG file');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      console.log('Starting logo upload...');
+
+      // 生成一个唯一的文件名
+      const fileName = `${state.campaignId || 'temp'}_logo_${Date.now()}.svg`;
+      console.log('Generated filename:', fileName);
+
+      // 上传文件到 Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('campaign-logos')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+
+      console.log('Upload successful:', data);
+
+      // 获取文件的公共 URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('campaign-logos')
+        .getPublicUrl(fileName);
+
+      console.log('Generated public URL:', publicUrl);
+
+      // 直接更新状态
+      setBusinessLogo(publicUrl);
+      console.log('Business logo state updated:', publicUrl);
+
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      if (error instanceof Error) {
+        alert(`Failed to upload logo: ${error.message}`);
+      } else {
+        alert('Failed to upload logo. Please try again.');
+      }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -201,12 +239,15 @@ export function KeyMessage({ onContentChange }: KeyMessageProps) {
                     onChange={handleLogoUpload}
                     className="hidden"
                     id="logo-upload"
+                    disabled={isUploading}
                   />
                   <label
                     htmlFor="logo-upload"
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className={`px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg ${
+                      isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
+                    }`}
                   >
-                    Upload
+                    {isUploading ? 'Uploading...' : 'Upload'}
                   </label>
                 </div>
               </div>

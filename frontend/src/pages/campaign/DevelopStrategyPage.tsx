@@ -24,7 +24,7 @@ export function DevelopStrategyPage() {
 
   // 处理下一步
   const handleNext = () => {
-    navigate('/campaign/create/key-message');
+    navigate(`/campaign/create/key-message?campaignId=${state.campaignId}`);
   };
 
   // 只有当有选中的策略时才能进入下一步

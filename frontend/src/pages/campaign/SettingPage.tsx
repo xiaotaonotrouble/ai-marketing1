@@ -23,6 +23,7 @@ const SettingPage: React.FC = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { updateCampaign } = useCampaign();
   const { state, setCurrentStep } = useCampaignCreate();
+  const { setCampaign } = useCampaign();
 
   // 设置当前步骤 - 只在组件挂载时运行一次
   useEffect(() => {
@@ -30,6 +31,40 @@ const SettingPage: React.FC = () => {
       setCurrentStep('setting');
     }
   }, []); // 空依赖数组，确保只运行一次
+
+  // 当进入设置页面时，将 CampaignCreate 的数据转换为 Campaign 数据
+  useEffect(() => {
+    // 转换数据
+    const campaignData = {
+      name: state.businessName + ' Campaign',  // 使用业务名称作为活动名称
+      status: 'draft' as const,
+      businessName: state.businessName,
+      productType: state.productType,
+      deliveryType: state.deliveryType,
+      productName: state.productName,
+      productPhotos: state.productPhotos,
+      videoAssetLink: state.videoAssetLink,
+      businessIntroduction: state.businessIntroduction,
+      coreSellingPoints: state.coreSellingPoints.filter(point => point.trim() !== ''),
+      coreAudiences: state.coreAudiences.filter(audience => audience.title.trim() !== '' || audience.description.trim() !== ''),
+      audienceGenders: state.audienceGenders,
+      audienceAges: state.audienceAges,
+      audienceInterests: state.audienceInterests,
+      windowStartDate: state.windowStartDate,
+      windowDueDate: state.windowDueDate,
+      landingPageUrl: state.landingPageUrl,
+      budget: state.budget,
+      selectedPlacements: state.selectedPlacements,
+      selectedLanguages: state.selectedLanguages,
+      selectedLocations: state.selectedLocations,
+      productUrl: state.targetUrl,
+      analysis: state.analysisResult,
+      selectedStrategies: state.selectedStrategies,
+    };
+
+    // 更新 Campaign Context
+    setCampaign(campaignData);
+  }, [state, setCampaign]);
 
   const handleNext = () => {
     // 准备要更新的campaign数据

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 interface Audience {
   title: string;
@@ -8,6 +9,7 @@ interface Audience {
 interface CampaignCreateState {
   // 全局状态
   currentStep: 'target' | 'key-message' | 'setting';
+  campaignId: string | null;
   
   // 第一步的状态
   targetUrl: string;
@@ -18,7 +20,7 @@ interface CampaignCreateState {
   selectedStrategies: any[]; // 选中的策略列表
 
   // 第二步的状态 - 基本信息
-  businessLogo?: string;
+  businessLogo: string;
   businessName: string;
   productType: string;
 
@@ -64,6 +66,7 @@ interface CampaignCreateState {
 
 interface CampaignCreateContextType {
   state: CampaignCreateState;
+  setCampaignId: (id: string) => void;
   setCurrentStep: (step: 'target' | 'key-message' | 'setting') => void;
   setTargetUrl: (url: string) => void;
   setAnalysisComplete: (complete: boolean, result?: any) => void;
@@ -118,11 +121,13 @@ interface CampaignCreateContextType {
 
 const initialState: CampaignCreateState = {
   currentStep: 'target',
+  campaignId: null,
   targetUrl: '',
   isAnalysisComplete: false,
   thinkingSuccess: null,
   showStrategies: false,
   selectedStrategies: [],
+  businessLogo: '',
   businessName: '',
   productType: '',
   deliveryType: '',
@@ -155,8 +160,63 @@ const initialState: CampaignCreateState = {
 
 const CampaignCreateContext = createContext<CampaignCreateContextType | undefined>(undefined);
 
+// 获取 URL 中的 campaignId
+function getCampaignIdFromUrl(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('campaignId');
+}
+
+// 从本地存储获取状态
+function getStoredState(campaignId: string | null): CampaignCreateState | null {
+  if (!campaignId) return null;
+  const stored = localStorage.getItem(`campaign_draft_${campaignId}`);
+  return stored ? JSON.parse(stored) : null;
+}
+
+// 保存状态到本地存储
+function saveStateToStorage(campaignId: string | null, state: CampaignCreateState) {
+  if (!campaignId) return;
+  localStorage.setItem(`campaign_draft_${campaignId}`, JSON.stringify(state));
+}
+
+// 删除本地存储的状态
+function clearStoredState(campaignId: string | null) {
+  if (!campaignId) return;
+  localStorage.removeItem(`campaign_draft_${campaignId}`);
+}
+
 export function CampaignCreateProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<CampaignCreateState>(initialState);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [state, setState] = useState<CampaignCreateState>(() => {
+    const stored = getStoredState(searchParams.get('campaignId'));
+    return stored || initialState;
+  });
+
+  // 当路由变化时，检查是否需要加载不同的草稿
+  useEffect(() => {
+    const newCampaignId = searchParams.get('campaignId');
+    if (newCampaignId && newCampaignId !== state.campaignId) {
+      const stored = getStoredState(newCampaignId);
+      if (stored) {
+        setState(stored);
+      } else {
+        setState(prev => ({ ...prev, campaignId: newCampaignId }));
+      }
+    }
+  }, [location]);
+
+  // 当状态变化时，保存到本地存储
+  useEffect(() => {
+    if (state.campaignId && state !== initialState) {
+      saveStateToStorage(state.campaignId, state);
+    }
+  }, [state]);
+
+  const setCampaignId = (id: string) => {
+    setState(prev => ({ ...prev, campaignId: id }));
+  };
 
   const setCurrentStep = (step: 'target' | 'key-message' | 'setting') => {
     setState(prev => ({ ...prev, currentStep: step }));
@@ -187,7 +247,16 @@ export function CampaignCreateProvider({ children }: { children: ReactNode }) {
   };
 
   const setBusinessLogo = (logo: string) => {
-    setState(prev => ({ ...prev, businessLogo: logo }));
+    setState(prev => {
+      // 如果新的 logo 和当前的一样，不进行更新
+      if (prev.businessLogo === logo) {
+        return prev;
+      }
+      const updated = { ...prev, businessLogo: logo };
+      // 保存到本地存储
+      saveStateToStorage(updated.campaignId, updated);
+      return updated;
+    });
   };
 
   const setBusinessName = (name: string) => {
@@ -386,6 +455,8 @@ export function CampaignCreateProvider({ children }: { children: ReactNode }) {
   };
 
   const resetState = () => {
+    const currentCampaignId = getCampaignIdFromUrl();
+    clearStoredState(currentCampaignId);
     setState(initialState);
   };
 
@@ -393,6 +464,7 @@ export function CampaignCreateProvider({ children }: { children: ReactNode }) {
     <CampaignCreateContext.Provider
       value={{
         state,
+        setCampaignId,
         setCurrentStep,
         setTargetUrl,
         setAnalysisComplete,

@@ -16,7 +16,7 @@ const campaignSteps = [
 const KeyMessagePage: React.FC = () => {
   const navigate = useNavigate();
   const [isComplete, setIsComplete] = useState(false);
-  const { updateCampaign } = useCampaign();
+  const { updateCampaign, clearCampaign } = useCampaign();
   const { state, setCurrentStep } = useCampaignCreate();
 
   // 设置当前步骤 - 只在组件挂载时运行一次
@@ -26,9 +26,17 @@ const KeyMessagePage: React.FC = () => {
     }
   }, []); // 空依赖数组，确保只运行一次
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // 只打印 CampaignCreateContext 的值
+    console.log('CampaignCreateContext state:', state);
+
+    // 清空 CampaignContext
+    clearCampaign();
+
     // 准备要更新的数据
     const updateData = {
+      name: `${state.businessName || 'New'} Campaign`,
+      status: 'draft' as const,
       businessLogo: state.businessLogo,
       businessName: state.businessName,
       productType: state.productType,
@@ -37,20 +45,21 @@ const KeyMessagePage: React.FC = () => {
       productPhotos: state.productPhotos,
       videoAssetLink: state.videoAssetLink,
       businessIntroduction: state.businessIntroduction,
-      coreSellingPoints: state.coreSellingPoints.filter(point => point.trim() !== ''), // 过滤掉空的卖点
-      coreAudiences: state.coreAudiences.filter(audience => audience.title.trim() !== '' || audience.description.trim() !== ''), // 过滤掉空的受众
+      coreSellingPoints: state.coreSellingPoints.filter(point => point.trim() !== ''),
+      coreAudiences: state.coreAudiences.filter(audience => audience.title.trim() !== '' || audience.description.trim() !== ''),
       audienceGenders: state.audienceGenders,
       audienceAges: state.audienceAges,
-      audienceInterests: state.audienceInterests
+      audienceInterests: state.audienceInterests,
+      productUrl: state.targetUrl || '',
+      analysis: state.analysisResult,
+      selectedStrategies: state.selectedStrategies,
     };
 
-    // 更新数据
+    // 更新 CampaignContext
     updateCampaign(updateData);
 
-    // 确保数据更新完成后再导航
-    setTimeout(() => {
-      navigate('/campaign/create/setting');
-    }, 0);
+    // 导航到下一页
+    navigate(`/campaign/create/setting?campaignId=${state.campaignId}`);
   };
 
   const handleContentChange = useCallback((complete: boolean) => {

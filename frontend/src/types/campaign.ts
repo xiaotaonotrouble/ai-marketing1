@@ -3,11 +3,12 @@ import { WebsiteAnalysis, MarketingStrategy } from '../services/api';
 export type CampaignStatus = 'draft' | 'active' | 'paused' | 'completed';
 
 export interface Campaign {
-  id: string;
+  id?: string;
+  user_id: string;
   name: string;
-  status: CampaignStatus;
-  createdAt: string;
-  updatedAt: string;
+  status: 'draft' | 'published' | 'completed' | 'archived';
+  created_at?: string;
+  updated_at?: string;
   description?: string;
   budget?: number;
   targetAudience?: string;
@@ -17,7 +18,7 @@ export interface Campaign {
   // 选中的营销策略
   selectedStrategies?: MarketingStrategy[];
   // 基本信息
-  businessLogo?: string;
+  businessLogo: string;
   businessName: string;
   productType: string;
   // 产品交付

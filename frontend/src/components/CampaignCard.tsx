@@ -6,44 +6,60 @@ interface CampaignCardProps {
   onClick: (campaign: Campaign) => void;
 }
 
-const statusColors = {
-  draft: 'bg-gray-100 text-gray-700 border border-gray-300',
-  active: 'bg-green-100 text-green-700 border border-green-300',
-  done: 'bg-blue-100 text-blue-700 border border-blue-300',
+const statusColors: Record<string, string> = {
+  draft: 'bg-yellow-100 text-yellow-800',
+  published: 'bg-green-100 text-green-800',
+  completed: 'bg-blue-100 text-blue-800',
+  archived: 'bg-gray-100 text-gray-800',
 };
 
 export function CampaignCard({ campaign, onClick }: CampaignCardProps) {
   return (
     <div 
-      className="card cursor-pointer"
+      className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200 cursor-pointer hover:shadow-md transition-shadow"
       onClick={() => onClick(campaign)}
     >
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-semibold text-gray-900">{campaign.name}</h3>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[campaign.status]}`}>
-          {campaign.status}
-        </span>
-      </div>
-      
-      {campaign.description && (
-        <p className="text-gray-600 mb-4 line-clamp-2">{campaign.description}</p>
-      )}
-      
-      <div className="flex justify-between items-center text-sm text-gray-500">
-        <span className="flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-          </svg>
-          {new Date(campaign.createdAt).toLocaleDateString()}
-        </span>
-        {campaign.budget && (
-          <span className="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div className="px-4 py-5 sm:p-6">
+        {/* Campaign Logo */}
+        <div className="flex items-center justify-center h-32 bg-gray-100 rounded-lg mb-4">
+          {campaign.businessLogo ? (
+            <img
+              src={campaign.businessLogo}
+              alt={`${campaign.businessName} logo`}
+              className="h-24 w-24 object-contain"
+            />
+          ) : (
+            <svg
+              className="h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
-            ${campaign.budget.toLocaleString()}
+          )}
+        </div>
+
+        {/* Campaign Info */}
+        <h3 className="text-lg font-medium text-gray-900 truncate">
+          {campaign.name}
+        </h3>
+        <p className="mt-1 text-sm text-gray-500 truncate">
+          {campaign.businessName}
+        </p>
+        <div className="mt-4 flex items-center justify-between">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[campaign.status] || statusColors.draft}`}>
+            {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
           </span>
-        )}
+          <span className="text-xs text-gray-500">
+            {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : ''}
+          </span>
+        </div>
       </div>
     </div>
   );
