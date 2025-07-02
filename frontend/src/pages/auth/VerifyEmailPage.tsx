@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { VerificationCodeInput } from '../../components/VerificationCodeInput';
-import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 export function VerifyEmailPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { verifyOtp, completeSignUp, sendVerificationCode } = useAuth();
   const [email, setEmail] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [error, setError] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Get email from location state or localStorage
@@ -45,37 +42,24 @@ export function VerifyEmailPage() {
     }
   }, []);
 
-  const handleVerificationComplete = (code: string) => {
-    setVerificationCode(code);
-    setError('');
-  };
-
-  const handleVerifyCode = async () => {
-    if (!verificationCode || verificationCode.length !== 6) {
-      setError('Please enter the 6-digit verification code.');
-      return;
-    }
-
+  const handleVerificationComplete = async (code: string) => {
     try {
-      setIsLoading(true);
-      setError('');
+      // TODO: Replace with actual verification code submission
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: code,
+        type: 'signup'
+      });
 
-      // 验证 OTP
-      const response = await verifyOtp(email, verificationCode);
-      if (response.error) throw response.error;
+      if (error) throw error;
 
-      // 完成注册
-      await completeSignUp();
-
-      // 清理并跳转
+      // Clear stored email and navigate to success page
       localStorage.removeItem('verificationEmail');
       navigate('/auth/login', { 
         state: { message: 'Email verified successfully! Please log in.' }
       });
     } catch (err: any) {
       setError(err.message || 'Verification failed. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -83,7 +67,13 @@ export function VerifyEmailPage() {
     if (resendTimer > 0) return;
     
     try {
-      await sendVerificationCode(email, false);
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      });
+
+      if (error) throw error;
+
       setResendTimer(24);
       setError('');
     } catch (err: any) {
@@ -156,17 +146,6 @@ export function VerifyEmailPage() {
                 {error}
               </p>
             )}
-
-            {/* Continue Button */}
-            <div className="mt-6">
-              <button
-                onClick={handleVerifyCode}
-                disabled={isLoading || !verificationCode || verificationCode.length !== 6}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Verifying...' : 'Continue'}
-              </button>
-            </div>
 
             {/* Resend code */}
             <div className="mt-6">

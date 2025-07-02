@@ -54,52 +54,52 @@ export function CampaignProvider({ children }: CampaignProviderProps) {
       
       let updatedCampaign: Campaign | null = null;
       
-      setCampaign(prev => {
-        // 如果之前没有campaign，创建一个新的，确保包含所有必需字段
-        if (!prev) {
-          const newCampaign: Campaign = {
-            name: updates.name || '',
-            status: updates.status || 'draft',
-            businessLogo: updates.businessLogo || '',
-            businessName: updates.businessName || '',
-            productType: updates.productType || '',
-            deliveryType: updates.deliveryType || '',
-            productName: updates.productName || '',
-            productPhotos: updates.productPhotos || [],
-            videoAssetLink: updates.videoAssetLink || '',
-            businessIntroduction: updates.businessIntroduction || '',
-            coreSellingPoints: updates.coreSellingPoints || [],
-            coreAudiences: updates.coreAudiences || [],
-            audienceGenders: updates.audienceGenders || [],
-            audienceAges: updates.audienceAges || [],
-            audienceInterests: updates.audienceInterests || '',
-            windowStartDate: updates.windowStartDate || null,
-            windowDueDate: updates.windowDueDate || null,
-            landingPageUrl: updates.landingPageUrl || '',
-            selectedPlacements: updates.selectedPlacements || [],
-            selectedLanguages: updates.selectedLanguages || [],
-            selectedLocations: updates.selectedLocations || [],
-          };
+    setCampaign(prev => {
+      // 如果之前没有campaign，创建一个新的，确保包含所有必需字段
+      if (!prev) {
+        const newCampaign: Campaign = {
+          name: updates.name || '',
+          status: updates.status || 'draft',
+          businessLogo: updates.businessLogo || '',
+          businessName: updates.businessName || '',
+          productType: updates.productType || '',
+          deliveryType: updates.deliveryType || '',
+          productName: updates.productName || '',
+          productPhotos: updates.productPhotos || [],
+          videoAssetLink: updates.videoAssetLink || '',
+          businessIntroduction: updates.businessIntroduction || '',
+          coreSellingPoints: updates.coreSellingPoints || [],
+          coreAudiences: updates.coreAudiences || [],
+          audienceGenders: updates.audienceGenders || [],
+          audienceAges: updates.audienceAges || [],
+          audienceInterests: updates.audienceInterests || '',
+          windowStartDate: updates.windowStartDate || null,
+          windowDueDate: updates.windowDueDate || null,
+          landingPageUrl: updates.landingPageUrl || '',
+          selectedPlacements: updates.selectedPlacements || [],
+          selectedLanguages: updates.selectedLanguages || [],
+          selectedLocations: updates.selectedLocations || [],
+        };
 
           console.log('Created new campaign with:', {
             ...newCampaign,
             businessLogo: newCampaign.businessLogo
           });
           updatedCampaign = newCampaign;
-          return newCampaign;
-        }
+        return newCampaign;
+      }
 
-        // 如果有之前的campaign，合并更新
-        const updated = {
-          ...prev,
-          ...updates,
+      // 如果有之前的campaign，合并更新
+      const updated = {
+        ...prev,
+        ...updates,
         };
         console.log('Updated existing campaign with:', {
           ...updated,
           businessLogo: updated.businessLogo
         });
         updatedCampaign = updated;
-        return updated;
+      return updated;
       });
 
       // 使用 setTimeout 确保状态已更新
@@ -149,7 +149,7 @@ export function CampaignProvider({ children }: CampaignProviderProps) {
         ...dataToSave,
         businessLogo: dataToSave.businessLogo
       });
-
+      
       // 调用服务保存活动
       const savedCampaign = await createCampaign(dataToSave);
       

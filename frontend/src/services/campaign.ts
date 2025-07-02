@@ -39,10 +39,10 @@ export async function createCampaign(campaign: Omit<Campaign, 'id' | 'created_at
 
     // 添加用户ID到campaign数据
     const campaignWithUserId = {
-      ...campaign,
+    ...campaign,
       user_id: user.id
-    };
-
+  };
+  
     const { data, error } = await supabase
       .from(TABLES.CAMPAIGNS)
       .insert(campaignWithUserId)
