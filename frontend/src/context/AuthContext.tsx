@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { User, AuthResponse } from '@supabase/supabase-js';
 import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '../services/auth';
 
 interface AuthContextType {
@@ -10,11 +10,12 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signUpWithEmail: (data: { email: string; password: string; firstName?: string; lastName?: string }) => Promise<void>;
-  verifyOtp: (email: string, token: string, isPasswordReset: boolean, newPassword?: string) => Promise<void>;
+  verifyOtp: (email: string, token: string) => Promise<AuthResponse>;
   sendVerificationCode: (email: string, isPasswordReset: boolean) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  completeSignUp: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -191,23 +192,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // 重置密码流程
         response = await supabase.auth.resetPasswordForEmail(email);
       } else {
-        // 注册流程
+        // Get signup data from localStorage
+        const signupDataStr = localStorage.getItem('signupData');
+        if (!signupDataStr) {
+          throw new Error('No signup data found');
+        }
+        const signupData = JSON.parse(signupDataStr);
+
+        // 使用 signInWithOtp 并指定 signup 类型来触发 Confirm signup 模板
         response = await supabase.auth.signInWithOtp({
-          email,
+          email: signupData.email,
           options: {
             shouldCreateUser: true,
+            data: {
+              first_name: signupData.firstName,
+              last_name: signupData.lastName,
+              password: signupData.password // 临时存储密码，验证后使用
+            }
           }
         });
+
+        // If signup successful, store email for verification page
+        if (!response.error) {
+          localStorage.setItem('verificationEmail', signupData.email);
+          // Navigate to verification page
+          window.location.href = '/auth/verify-email';
+        }
       }
 
       console.log('Supabase response:', response);
 
       if (response.error) throw response.error;
-
-      // 如果成功，显示提示
-      alert(`If the email exists in our system, you will receive a ${isPasswordReset ? 'password reset' : 'verification'} code shortly.`);
     } catch (error) {
-      console.error('Detailed error sending verification code:', error);
+      console.error('Error sending verification code:', error);
       setError(error instanceof Error ? error.message : 'Failed to send verification code');
       throw error;
     } finally {
@@ -215,34 +232,74 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const verifyOtp = async (email: string, token: string, isPasswordReset: boolean = false, newPassword?: string) => {
+  const verifyOtp = async (email: string, token: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log(`Attempting to verify ${isPasswordReset ? 'password reset' : 'signup'} code`);
-
-      let response;
-      if (isPasswordReset && newPassword) {
-        // 重置密码流程
-        response = await supabase.auth.updateUser({
-          password: newPassword
-        });
-      } else {
-        // 注册流程
-        response = await supabase.auth.verifyOtp({
-          email,
-          token,
-          type: 'signup'
-        });
-      }
+      // 验证 OTP
+      const response = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'signup'  // 指定这是注册流程的验证
+      });
 
       console.log('Verification response:', response);
 
       if (response.error) throw response.error;
+
+      // After successful verification, we'll complete the signup in a separate step
+      return response;
     } catch (error) {
       console.error('Error verifying OTP:', error);
       setError(error instanceof Error ? error.message : 'Failed to verify code');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completeSignUp = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Get stored signup data
+      const signupDataStr = localStorage.getItem('signupData');
+      if (!signupDataStr) {
+        throw new Error('No signup data found');
+      }
+
+      const signupData = JSON.parse(signupDataStr);
+      
+      // Create the user with the stored data
+      const { data: { session }, error: signUpError } = await supabase.auth.signUp({
+        email: signupData.email,
+        password: signupData.password,
+        options: {
+          data: {
+            first_name: signupData.firstName,
+            last_name: signupData.lastName
+          }
+        }
+      });
+
+      if (signUpError) throw signUpError;
+
+      // Clear signup data
+      localStorage.removeItem('signupData');
+      localStorage.removeItem('verificationEmail');
+
+      // Set the user from the session
+      if (session?.user) {
+        setUser(session.user);
+        return session.user;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error completing signup:', error);
+      setError(error instanceof Error ? error.message : 'Failed to complete signup');
       throw error;
     } finally {
       setLoading(false);
@@ -261,6 +318,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     resetPassword,
     signOut,
     clearError,
+    completeSignUp
   };
 
   return (

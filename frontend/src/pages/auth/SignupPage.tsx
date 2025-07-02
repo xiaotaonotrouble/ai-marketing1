@@ -4,50 +4,19 @@ import { useAuth } from '../../context/AuthContext';
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const { signUpWithEmail, signInWithGoogle, sendVerificationCode, verifyOtp, loading, error, clearError } = useAuth();
+  const { signUpWithEmail, signInWithGoogle, sendVerificationCode, loading, error, clearError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [isVerificationSent, setIsVerificationSent] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
 
   const handleGoogleSignup = async () => {
     try {
       await signInWithGoogle();
-      // Google登录会自动重定向
+      // Google login will auto-redirect
     } catch (error) {
       console.error('Google signup failed:', error);
-    }
-  };
-
-  const startResendTimer = () => {
-    setResendTimer(60);
-    const timer = setInterval(() => {
-      setResendTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const handleSendVerificationCode = async () => {
-    if (!email) {
-      alert('Please enter your email address');
-      return;
-    }
-
-    try {
-      await sendVerificationCode(email, false); // false 表示这是注册流程
-      setIsVerificationSent(true);
-      startResendTimer();
-    } catch (error) {
-      console.error('Failed to send verification code:', error);
     }
   };
 
@@ -55,31 +24,23 @@ export function SignupPage() {
     e.preventDefault();
     clearError();
 
-    if (!isVerificationSent) {
-      await handleSendVerificationCode();
-      return;
-    }
-
-    if (!verificationCode) {
-      alert('Please enter the verification code');
-      return;
-    }
-
     try {
-      // 验证OTP
-      await verifyOtp(email, verificationCode, false); // false 表示这是注册流程
-      
-      // OTP验证成功后，创建用户
-      await signUpWithEmail({
+      // Store signup data first
+      const signupData = {
         email,
         password,
         firstName,
-        lastName,
-      });
-
-      navigate('/my-campaigns');
+        lastName
+      };
+      localStorage.setItem('signupData', JSON.stringify(signupData));
+      
+      // Send verification code
+      await sendVerificationCode(email, false);
+      
+      // Navigation is now handled in AuthContext
     } catch (error) {
-      console.error('Signup failed:', error);
+      console.error('Failed to start signup process:', error);
+      localStorage.removeItem('signupData'); // Clean up on error
     }
   };
 
@@ -105,7 +66,7 @@ export function SignupPage() {
             </p>
           </div>
 
-          {/* 错误提示 */}
+          {/* Error message */}
           {error && (
             <div className="mb-4 p-2 bg-red-50 border border-red-200 rounded-md">
               <p className="text-sm text-red-600">{error}</p>
@@ -190,47 +151,12 @@ export function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading || isVerificationSent}
+                  disabled={loading}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Enter your email address"
                 />
               </div>
             </div>
-
-            {isVerificationSent && (
-              <div>
-                <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">
-                  Verification code
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="verificationCode"
-                    name="verificationCode"
-                    type="text"
-                    required
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    disabled={loading}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="Enter verification code"
-                  />
-                  {resendTimer > 0 ? (
-                    <p className="mt-2 text-sm text-gray-500">
-                      Resend code in {resendTimer}s
-                    </p>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleSendVerificationCode}
-                      disabled={loading}
-                      className="mt-2 text-sm text-orange-500 hover:text-orange-400"
-                    >
-                      Resend code
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
 
             <div>
               <div className="flex items-center justify-between">
@@ -248,13 +174,12 @@ export function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Create a password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showPassword ? (
@@ -277,26 +202,17 @@ export function SignupPage() {
                 disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : isVerificationSent ? 'Create account' : 'Send verification code'}
+                {loading ? 'Creating account...' : 'Create account'}
               </button>
             </div>
           </form>
 
           <div className="mt-6">
-            <div className="text-sm text-gray-500">
+            <p className="text-center text-sm text-gray-600">
               Already have an account?{' '}
               <Link to="/auth/login" className="font-medium text-orange-500 hover:text-orange-400">
                 Sign in
               </Link>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              Need help? Contact us at{' '}
-              <a href="mailto:support@maxin.com" className="text-orange-500 hover:text-orange-400">
-                support@maxin.com
-              </a>
             </p>
           </div>
         </div>
