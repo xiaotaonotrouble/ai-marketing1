@@ -14,6 +14,7 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { SignupPage } from './pages/auth/SignupPage';
 import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { CallbackPage } from './pages/auth/CallbackPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabase';
 import { TABLES } from './constants/tables';
@@ -170,7 +171,7 @@ function AppRoutes() {
         <Route path="signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
         <Route path="verify-email" element={<PublicRoute><VerifyEmailPage /></PublicRoute>} />
         <Route path="forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
-        <Route path="callback" element={<PublicRoute><div>Processing authentication...</div></PublicRoute>} />
+        <Route path="callback" element={<PublicRoute><CallbackPage /></PublicRoute>} />
       </Route>
 
       {/* 受保护的路由 */}

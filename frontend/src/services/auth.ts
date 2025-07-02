@@ -85,10 +85,15 @@ export async function signInWithEmail({
 // Google 登录
 export async function signInWithGoogle(): Promise<AuthResponse> {
   try {
+    // 根据环境确定重定向 URL
+    const redirectTo = import.meta.env.DEV 
+      ? 'http://localhost:5173/my-campaigns'
+      : 'https://ai-marketing1.vercel.app/my-campaigns';
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
       },
     });
 
