@@ -45,7 +45,7 @@ export function CampaignSuccessModal({ isOpen }: CampaignSuccessModalProps) {
             {/* 按钮容器: mt-8 可以调整为 mt-6 或 mt-10 来改变与上方文本的间距 */}
             <div className="mt-10">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/my-campaigns')}
                 className="px-8 py-4 bg-orange-500 text-white rounded-lg text-lg font-medium hover:bg-orange-600 transition-colors"
               >
                 Back to My Campaigns

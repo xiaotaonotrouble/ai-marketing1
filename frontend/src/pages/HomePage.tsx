@@ -5,6 +5,11 @@ import { CampaignCard } from '../components/CampaignCard';
 import { getUserCampaigns } from '../services/campaign';
 import { useAuth } from '../context/AuthContext';
 
+// 生成临时 ID 的函数
+const generateTempId = () => {
+  return 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+};
+
 export function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -41,6 +46,12 @@ export function HomePage() {
     navigate(`/campaign/${campaign.id}`);
   };
 
+  // 处理创建新活动
+  const handleCreateCampaign = () => {
+    const tempId = generateTempId();
+    navigate(`/campaign/create/develop-strategy?campaignId=${tempId}`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -58,7 +69,7 @@ export function HomePage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">My Campaigns</h1>
           <button
-            onClick={() => navigate('/campaign/create/key-message')}
+            onClick={handleCreateCampaign}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
           >
             Create Campaign
@@ -91,7 +102,7 @@ export function HomePage() {
             <p className="mt-1 text-sm text-gray-500">Get started by creating a new campaign.</p>
             <div className="mt-6">
               <button
-                onClick={() => navigate('/campaign/create/key-message')}
+                onClick={handleCreateCampaign}
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
               >
                 Create Campaign
