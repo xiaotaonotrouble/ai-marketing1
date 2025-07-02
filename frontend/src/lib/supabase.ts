@@ -8,9 +8,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+})
 
 // 导出常用的数据库表名
 export const TABLES = {
   CAMPAIGNS: 'campaigns',
+  INFLUENCERS: 'influencers',
+  COLLABORATIONS: 'collaborations',
 } as const 
