@@ -41,7 +41,7 @@ export function ThinkingStatus({ isSuccess, onStop }: ThinkingStatusProps) {
         <span className={`text-sm font-medium ${
           isSuccess ? 'text-green-600' : 'text-orange-600'
         }`}>
-          {isSuccess ? 'Head finished thinking' : 'Head is thinking'}
+          {isSuccess ? 'Max finished thinking' : 'Max is thinking'}
         </span>
         {!isSuccess && (
           <span className="dots ml-1 text-orange-600">...</span>

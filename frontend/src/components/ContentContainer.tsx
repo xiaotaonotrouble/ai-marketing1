@@ -18,7 +18,7 @@ export function ContentContainer({ children }: ContentContainerProps) {
             </svg>
           </div>
           <div className="flex items-center">
-            <h3 className="font-semibold text-gray-900 text-sm">Head</h3>
+            <h3 className="font-semibold text-gray-900 text-sm">Max</h3>
             <span className="mx-2 text-gray-500">|</span>
             <p className="text-gray-500 text-xs">The world's first AI marketer</p>
           </div>
